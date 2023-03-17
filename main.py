@@ -1,33 +1,124 @@
-from os import path
+
+from os import path, stat
 import csv
 
+filename = "phones.csv"
+last_id = 0
+all_data = []
 
-def show_all():
-    pass
 
-def search():
-    pass
+# Show records by row_counter if number of records more row_counter
+def show_all(row_counter=10):
+    if all_data:
+        # print(*all_data, sep="\n")
+        records = len(all_data)
+        i = 0
+        while i < records:
+            j = 0
+            while j < row_counter and i < records:
+                print(all_data[i])
+                i += 1
+                j += 1
+            ans = input('More? Y — Yes > ').lower()
+            if ans != 'y' and ans != 'н':
+                break
+    else:
+        print("No records yet")
+
+
+# Search records by any part
+def search(lissy, instr):   # find number
+    founded = len([x for x in lissy if instr in x])
+    if founded > 0:
+        print(f'Founded {founded}', end="\n\t")
+        print(*[x for x in lissy if instr in x], sep="\n\t")
+    else:
+        print('No records founded')
+
 
 def add_new_contact():
-    pass
+    global last_id
+    array = ["firstname", "patrinymic", "lastname", "phone"]
+    string = ""
+    for i in array:
+        string += input(f"Enter {i} > ") + " "
+
+    all_data.append(f"{last_id} {string}\n")
+
+    last_id += 1
+
 
 def edit():
     pass
 
+
+# delete data not userid
 def delete():
     pass
+
 
 def imp():
     pass
 
-def read_records():
+
+# export all_data to text file
+def export(file_to):
     pass
+
+
+def read_csv_to_list(filename):
+    global all_data, last_id
+    all_data = []
+    if not path.exists(filename):
+        # print("No file exists")
+        # return -1
+        with open(filename, "w", encoding="utf-8") as _:
+            pass
+    else:
+        r_file = open(filename, encoding='utf-8')
+        file_reader = csv.DictReader(r_file, delimiter=",")
+        if stat(filename).st_size != 0:
+            for row in file_reader:
+                all_data.append(row['userid'] + ' ' + row['firstname'] + ' '
+                                + row['patrinymic'] + ' ' + row['lastname'] + ' ' + row['phone'])
+            last_id = int(row['userid'])+1
+        r_file.close()
+
+
+def wr_csv(filename):  # write file
+    global all_data
+    csvfile = open(filename, 'w', newline='')
+    fieldnames = ['userid', 'firstname', 'patrinymic', 'lastname', 'phone']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+
+    for x in all_data:
+        nline = x.split()
+        if ' [deleted] [deleted] [deleted] [deleted]' in x or len(x.split()) == 1:
+            # nline = x.split()
+            writer.writerow(
+                {'userid': nline[0],
+                 'firstname': '',
+                 'patrinymic': '',
+                 'lastname': '',
+                 'phone': ''})
+        else:
+            # nline = x.split()
+            writer.writerow(
+                {'userid': nline[0],
+                 'firstname': nline[1],
+                 'patrinymic': nline[2],
+                 'lastname': nline[3],
+                 'phone': nline[4]})
+    csvfile.close()
+
 
 def main_menu():
     play = True
 
     while play:
-        read_records()
+        if read_csv_to_list(filename):
+            break
         answer = input("\nPhone book. Select operation:\n\n"
                        "1. Show all\n"
                        "2. Search\n"
@@ -35,13 +126,16 @@ def main_menu():
                        "4. Edit\n"
                        "5. Delete\n"
                        "6. Export\n"
-                       "7. Import\n"
-                       "8. Exit\n")
+                       "7. Import\n\n"
+                       "0. Exit\n")
         match answer:
             case "1":
                 show_all()
+                # print(last_id)
             case "2":
-                search()
+                to_find = input('What do you search ? > ')
+                search(all_data, to_find)
+
             case "3":
                 add_new_contact()
             case "4":
@@ -52,10 +146,10 @@ def main_menu():
                 export()
             case "7":
                 imp()
-            case "8":
+            case "0":
                 play = False
             case _:
-                print("Try again!\n")
-
+                print("Try again!")
+        wr_csv(filename)
 
 main_menu()
