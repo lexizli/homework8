@@ -1,5 +1,5 @@
 import view
-# import view_ru as view
+# import view_ru as view -
 from os import path, stat
 import csv
 import re
